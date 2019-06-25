@@ -1,4 +1,4 @@
-#pragma once
+ #pragma once
 
 #include "RelativeLayout.hpp"
 
@@ -68,6 +68,8 @@ public:
     auto paint(const AMouse &mouse, double dt, IRenderer &renderer) -> void final;
 };
 
+#include <iostream>
+
 inline auto Abyss::Widgets::WindowBody::paint(const AMouse &, double, IRenderer &renderer) -> void
 {
     auto pos{getPosition()};
@@ -75,6 +77,8 @@ inline auto Abyss::Widgets::WindowBody::paint(const AMouse &, double, IRenderer 
 
     renderer.color({255, 255, 255});
     renderer.roundedRectangle(pos, size);
+
+	std::cout << "wow" << std::endl;
 }
 
 class Abyss::Widgets::Window final : public RelativeLayout {
@@ -139,6 +143,8 @@ inline auto Abyss::Widgets::Window::paint(const AMouse &mouse, double dt, IRende
 
 	renderer.color({255, 255, 255, 75});
 	renderer.roundedRectangle(pos, size);
+
+	m_body->paintDispatch(mouse, dt, renderer);
 }
 
 inline auto Abyss::Widgets::Window::getBody() const noexcept -> WindowBody &

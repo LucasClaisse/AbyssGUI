@@ -3,19 +3,23 @@
 #include <cstdint>
 
 namespace Abyss {
-    enum class ACTION : std::uint8_t;
-    enum class KEY : std::uint16_t;
-    enum class MOUSE : std::uint8_t;
-    enum class MODS : std::uint8_t;
+    namespace GUI {
+        namespace InputDefinitions {
+            enum class ACTION : std::uint8_t;
+            enum class KEY : std::uint16_t;
+            enum class MOUSE_BUTTON : std::uint8_t;
+            enum class MOD : std::uint8_t;
+        }
+    }
 }
 
-enum class Abyss::ACTION : std::uint8_t {
+enum class Abyss::GUI::InputDefinitions::ACTION : std::uint8_t {
     ACTION_RELEASE = 0,
     ACTION_PRESS   = 1,
     ACTION_REPEAT  = 2
 };
 
-enum class Abyss::KEY : std::uint16_t {
+enum class Abyss::GUI::InputDefinitions::KEY : std::uint16_t {
     KEY_UNKNOWN       = 1,
     KEY_SPACE         = 32,
     KEY_APOSTROPHE    = 39,
@@ -140,7 +144,7 @@ enum class Abyss::KEY : std::uint16_t {
     KEY_LAST          = KEY_MENU
 };
 
-enum class Abyss::MOUSE : std::uint8_t {
+enum class Abyss::GUI::InputDefinitions::MOUSE_BUTTON : std::uint8_t {
     MOUSE_BUTTON_1      = 0,
     MOUSE_BUTTON_2      = 1,
     MOUSE_BUTTON_3      = 2,
@@ -155,7 +159,7 @@ enum class Abyss::MOUSE : std::uint8_t {
     MOUSE_BUTTON_MIDDLE = MOUSE_BUTTON_3
 };
 
-enum class Abyss::MODS : std::uint8_t {
+enum class Abyss::GUI::InputDefinitions::MOD : std::uint8_t {
     MODS_SHIFT     = 0x0001,
     MODS_CONTROL   = 0x0002,
     MODS_ALT       = 0x0004,

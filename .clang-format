@@ -54,7 +54,7 @@ Cpp11BracedListStyle: true
 DerivePointerAlignment: false # linked with PointerAlignment (false to force?)
 DisableFormat: false # DUHHH
 #### ExperimentalAutoDetectBinPacking = false
-FixNamespaceComments: true
+FixNamespaceComments: false
 #### ForEachMacros: {"", ""}
 IncludeBlocks: Regroup
 #### IncludeCategories:
@@ -72,7 +72,7 @@ IndentPPDirectives: AfterHash # BeforeHash # CHANGE ME ON 9.0.0 RELEASE
 IndentWidth: 4
 IndentWrappedFunctionNames: false
 #### JavaImportGroups: ['com.example', 'com', 'org']
-#### JavaScriptQuotes: Double 
+#### JavaScriptQuotes: Double
 #### JavaScriptWrapImports: true
 KeepEmptyLinesAtTheStartOfBlocks: false
 Language: Cpp

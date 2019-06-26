@@ -8,19 +8,19 @@ namespace Abyss {
 
 class Abyss::Serializable {
 public:
-	inline virtual ~Serializable() = default;
+	virtual ~Serializable() = default;
 
     template <typename T>
-    inline static auto pack(std::ostream &os, const T &val) -> void;
+    static auto pack(std::ostream &os, const T &val) -> void;
 
 	template <typename T>
-    inline static auto unpack(std::istream &is, T &val) -> T &;
+    static auto unpack(std::istream &is, T &val) -> T &;
 
     template <typename T>
-    [[nodiscard]] inline static auto unpack(std::istream &is) -> T;
+    [[nodiscard]] static auto unpack(std::istream &is) -> T;
 
-    inline virtual auto serialize(std::ostream &os) const -> void;
-    inline virtual auto deserialize(std::istream &is) -> void;
+    virtual auto serialize(std::ostream &os) const -> void;
+    virtual auto deserialize(std::istream &is) -> void;
 };
 
 template <typename T>

@@ -1,18 +1,18 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
 
-#include <SDL.h>
-#include <SDL_syswm.h>
-#include <SDL_ttf.h>
-#include <SDL_opengl.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_syswm.h>
+#include <SDL2/SDL_ttf.h>
 
 #pragma clang diagnostic pop
 
 #include "Abyss/GUI/Interfaces/Renderer.hpp"
 
+#include <GL/glu.h>
 #include <cstdint>
 #include <ctime>
-#include <gl\GLU.h>
 #include <sstream>
 #include <stdexcept>
 
@@ -114,7 +114,7 @@ int main(int, char *[])
     try {
         start();
     } catch (const std::exception &e) {
-        MessageBoxA(nullptr, e.what(), "Exception caught", 0);
+        // MessageBoxA(nullptr, e.what(), "Exception caught", 0);
     }
     return 0;
 }

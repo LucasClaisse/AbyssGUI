@@ -4,6 +4,7 @@
 #include "Interfaces/Renderer.hpp"
 
 #include <functional>
+#include <memory>
 
 namespace Abyss {
     namespace GUI {
@@ -13,20 +14,29 @@ namespace Abyss {
 
 class Abyss::GUI::Widget {
 protected:
-    Widget *        m_parent{nullptr};
-    bool            m_visible{true};
-    bool            m_active{true};
-    Vector3<double> m_position{};
-    Vector3<double> m_size{};
-    Vector3<double> m_rotation{};
-    Vector3<double> m_scale{1, 1, 1};
+    using Child     = Widget;
+    using ChildType = std::unique_ptr<Child>;
+
+    Widget *               m_parent{nullptr};
+    bool                   m_visible{true};
+    bool                   m_active{true};
+    Vector3<double>        m_position{};
+    Vector3<double>        m_size{};
+    Vector3<double>        m_rotation{};
+    Vector3<double>        m_scale{1, 1, 1};
+    std::vector<ChildType> m_children{};
 
     virtual auto think(const InputDevice &device, double dt) -> void;
-    virtual auto paint(const InputDevice &device, double dt, IRenderer &renderer) -> void;
-    virtual auto keyEvent(const InputDevice &device, KEY key, ACTION action, MODS mods) -> void;
+    virtual auto paint(const InputDevice &device, double dt, Renderer &renderer) -> void;
+    virtual auto keyEvent(const InputDevice &device, InputDefinitions::KEY key, InputDefinitions::ACTION action) -> void;
     virtual auto characterEvent(const InputDevice &device, wchar_t codepoint) -> void;
-    virtual auto mouseButtonEvent(const InputDevice &device, MOUSE button, ACTION action, MODS mods) -> void;
+    virtual auto mouseButtonEvent(const InputDevice &device, InputDefinitions::MOUSE_BUTTON button, InputDefinitions::ACTION action) -> void;
     virtual auto scrollEvent(const InputDevice &device, const Vector3<double> &offset) -> void;
+    virtual auto addChild(ChildType &&widget) -> Child &;
+    virtual auto deleteChild(const Child &child) -> void;
+    virtual auto onChildAdded(const Child &child) -> void;
+    virtual auto onChildDeleted(const Child &child) -> void;
+    virtual auto onChildChange(const Child &child) -> void;
 
 public:
     [[nodiscard]] virtual auto getParent() const -> decltype(m_parent);
@@ -43,7 +53,74 @@ public:
     virtual auto               setRotation(decltype(m_rotation) rotation) -> void;
     [[nodiscard]] virtual auto getScale(bool relative = true) const -> decltype(m_scale);
     virtual auto               setScale(decltype(m_scale) scale) -> void;
+    virtual auto               thinkDispatch(const InputDevice &device, double dt) -> void;
+    virtual auto               paintDispatch(const InputDevice &device, double dt, Renderer &renderer) -> void;
+    virtual auto               keyEventDispatch(const InputDevice &device, InputDefinitions::KEY key, InputDefinitions::ACTION action) -> void;
+    virtual auto               characterEventDispatch(const InputDevice &device, wchar_t codepoint) -> void;
+    virtual auto               mouseButtonEventDispatch(const InputDevice &device, InputDefinitions::MOUSE_BUTTON button, InputDefinitions::ACTION action) -> void;
+    virtual auto               scrollEventDispatch(const InputDevice &device, const Vector3<double> &offset) -> void;
 };
+
+inline auto Abyss::GUI::Widget::think(const InputDevice &device, double dt) -> void
+{
+}
+
+inline auto Abyss::GUI::Widget::paint(const InputDevice &device, double dt, Renderer &renderer) -> void
+{
+}
+
+inline auto Abyss::GUI::Widget::keyEvent(const InputDevice &device, InputDefinitions::KEY key, InputDefinitions::ACTION action) -> void
+{
+}
+
+inline auto Abyss::GUI::Widget::characterEvent(const InputDevice &device, wchar_t codepoint) -> void
+{
+}
+
+inline auto Abyss::GUI::Widget::mouseButtonEvent(const InputDevice &device, InputDefinitions::MOUSE_BUTTON button, InputDefinitions::ACTION action) -> void
+{
+}
+
+inline auto Abyss::GUI::Widget::scrollEvent(const InputDevice &device, const Vector3<double> &offset) -> void
+{
+}
+
+inline auto Abyss::GUI::Widget::addChild(ChildType &&widget) -> Child &
+{
+    if (widget == nullptr)
+        throw std::runtime_error{"Couldn't add an invalid child to Layout"};
+
+    m_children.emplace_back(std::move(widget));
+    auto &reference{*m_children.back()};
+    reference.setParent(this);
+    onChildAdded(reference);
+    onChildChange(reference);
+    return reference;
+}
+
+inline auto Abyss::GUI::Widget::deleteChild(const Child &child) -> void
+{
+    for (auto it{m_children.cbegin()}; it != m_children.cend();) {
+        auto &ptr{*it};
+        if (ptr.get() == &child) {
+            m_children.erase(it);
+            return;
+        } else
+            ++it;
+    }
+}
+
+inline auto Abyss::GUI::Widget::onChildAdded(const Child &child) -> void
+{
+}
+
+inline auto Abyss::GUI::Widget::onChildDeleted(const Child &child) -> void
+{
+}
+
+inline auto Abyss::GUI::Widget::onChildChange(const Child &child) -> void
+{
+}
 
 inline auto Abyss::GUI::Widget::getParent() const -> decltype(m_parent)
 {
@@ -59,6 +136,7 @@ inline auto Abyss::GUI::Widget::isVisible() const -> decltype(m_visible)
 {
     if (m_parent != nullptr && !m_parent->isVisible())
         return false;
+
     return m_visible;
 }
 
@@ -71,6 +149,7 @@ inline auto Abyss::GUI::Widget::isActive() const -> decltype(m_active)
 {
     if (m_parent != nullptr && !m_parent->isActive())
         return false;
+
     return m_active;
 }
 
@@ -83,6 +162,7 @@ inline auto Abyss::GUI::Widget::getPosition(bool relative) const -> decltype(m_p
 {
     if (m_parent != nullptr && relative)
         return m_parent->getPosition() + m_position;
+
     return m_position;
 }
 
@@ -105,6 +185,7 @@ inline auto Abyss::GUI::Widget::getRotation(bool relative) const -> decltype(m_r
 {
     if (m_parent != nullptr && relative)
         return m_parent->getRotation() + m_rotation;
+
     return m_rotation;
 }
 
@@ -117,6 +198,7 @@ inline auto Abyss::GUI::Widget::getScale(bool relative) const -> decltype(m_scal
 {
     if (m_parent != nullptr && relative)
         return m_parent->getScale() * m_scale;
+
     return m_scale;
 }
 
@@ -125,165 +207,68 @@ inline auto Abyss::GUI::Widget::setScale(decltype(m_scale) scale) -> void
     m_scale = scale;
 }
 
-namespace Abyss {
-    class Widget;
+inline auto Abyss::GUI::Widget::thinkDispatch(const InputDevice &device, double dt) -> void
+{
+    if (!m_active)
+        return;
+
+    for (const auto &widget : m_children)
+        widget->thinkDispatch(device, dt);
+
+    think(device, dt);
 }
 
-class Abyss::Widget {
-protected:
-    Widget *        m_parent{nullptr};
-    Vector3<double> m_position{};
-    Vector3<double> m_size{};
-    bool            m_visible{true};
-    bool            m_active{true};
-
-public:
-    Widget(decltype(m_parent) parent = nullptr);
-    virtual ~Widget() = default;
-
-    [[nodiscard]] virtual auto getParent() const noexcept -> decltype(m_parent);
-    virtual auto               setParent(decltype(m_parent) parent) noexcept -> void;
-    [[nodiscard]] virtual auto getPosition(const bool relative = true) const noexcept -> decltype(m_position);
-    virtual auto               setPosition(const decltype(m_position) &position) noexcept -> void;
-    [[nodiscard]] virtual auto getSize() const noexcept -> decltype(m_size);
-    virtual auto               setSize(const decltype(m_size) &size) -> void;
-    [[nodiscard]] virtual auto isVisible() const noexcept -> decltype(m_visible);
-    virtual auto               setVisible(const decltype(m_visible) visible) -> void;
-    [[nodiscard]] virtual auto isActive() const noexcept -> decltype(m_active);
-    virtual auto               setActive(const decltype(m_active) active) -> void;
-
-    virtual auto think(const InputDevice &mouse, double dt) -> void;
-    virtual auto paint(const AMouse &mouse, double dt, IRenderer &renderer) -> void;
-    virtual auto keyEvent(const AMouse &mouse, KEY key, ACTION action, MODS mods) -> void;
-    virtual auto characterEvent(const AMouse &mouse, wchar_t codepoint) -> void;
-    virtual auto mouseButtonEvent(const AMouse &mouse, MOUSE button, ACTION action, MODS mods) -> void;
-    virtual auto scrollEvent(const AMouse &mouse, const Vector3<double> &offset) -> void;
-
-    virtual auto thinkDispatch(const AMouse &mouse, double dt) -> void;
-    virtual auto paintDispatch(const AMouse &mouse, double dt, IRenderer &renderer) -> void;
-    virtual auto keyEventDispatch(const AMouse &mouse, KEY key, ACTION action, MODS mods) -> void;
-    virtual auto characterEventDispatch(const AMouse &mouse, wchar_t codepoint) -> void;
-    virtual auto mouseButtonEventDispatch(const AMouse &mouse, MOUSE button, ACTION action, MODS mods) -> void;
-    virtual auto scrollEventDispatch(const AMouse &mouse, const Vector3<double> &offset) -> void;
-};
-
-inline Abyss::Widget::Widget(decltype(m_parent) parent)
-    : m_parent{parent}
+inline auto Abyss::GUI::Widget::paintDispatch(const InputDevice &device, double dt, Renderer &renderer) -> void
 {
+    if (!m_visible)
+        return;
+
+    paint(device, dt, renderer);
+
+    for (const auto &widget : m_children)
+        widget->paintDispatch(device, dt, renderer);
 }
 
-[[nodiscard]] inline auto Abyss::Widget::getParent() const noexcept -> decltype(m_parent)
+inline auto Abyss::GUI::Widget::keyEventDispatch(const InputDevice &device, InputDefinitions::KEY key, InputDefinitions::ACTION action) -> void
 {
-    return m_parent;
+    if (!m_active)
+        return;
+
+    for (const auto &widget : m_children)
+        widget->keyEventDispatch(device, key, action);
+
+    keyEvent(device, key, action);
 }
 
-inline auto Abyss::Widget::setParent(decltype(m_parent) parent) noexcept -> void
+inline auto Abyss::GUI::Widget::characterEventDispatch(const InputDevice &device, wchar_t codepoint) -> void
 {
-    m_parent = parent;
+    if (!m_active)
+        return;
+
+    for (const auto &widget : m_children)
+        widget->characterEventDispatch(device, codepoint);
+
+    characterEvent(device, codepoint);
 }
 
-[[nodiscard]] inline auto Abyss::Widget::getPosition(const bool relative) const noexcept -> decltype(m_position)
+inline auto Abyss::GUI::Widget::mouseButtonEventDispatch(const InputDevice &device, InputDefinitions::MOUSE_BUTTON button, InputDefinitions::ACTION action) -> void
 {
-    if (m_parent != nullptr && relative)
-        return m_parent->getPosition() + m_position;
-    return m_position;
+    if (!m_active)
+        return;
+
+    for (const auto &widget : m_children)
+        widget->mouseButtonEventDispatch(device, button, action);
+
+    mouseButtonEvent(device, button, action);
 }
 
-inline auto Abyss::Widget::setPosition(const decltype(m_position) &position) noexcept -> void
+inline auto Abyss::GUI::Widget::scrollEventDispatch(const InputDevice &device, const Vector3<double> &offset) -> void
 {
-    m_position = position;
-}
+    if (!m_active)
+        return;
 
-[[nodiscard]] inline auto Abyss::Widget::getSize() const noexcept -> decltype(m_size)
-{
-    return m_size;
-}
+    for (const auto &widget : m_children)
+        widget->scrollEventDispatch(device, offset);
 
-inline auto Abyss::Widget::setSize(const decltype(m_size) &size) -> void
-{
-    m_size = size;
-}
-
-[[nodiscard]] inline auto Abyss::Widget::isVisible() const noexcept -> decltype(m_visible)
-{
-    if (m_parent != nullptr && !m_parent->isVisible())
-        return false;
-    return m_visible;
-}
-
-inline auto Abyss::Widget::setVisible(const decltype(m_visible) visible) -> void
-{
-    m_visible = visible;
-}
-
-[[nodiscard]] inline auto Abyss::Widget::isActive() const noexcept -> decltype(m_active)
-{
-    if (m_parent != nullptr && !m_parent->isActive())
-        return false;
-    return m_active;
-}
-
-inline auto Abyss::Widget::setActive(const decltype(m_active) active) -> void
-{
-    m_active = active;
-}
-
-inline auto Abyss::Widget::think(const AMouse &mouse, double dt) -> void
-{
-}
-
-inline auto Abyss::Widget::paint(const AMouse &mouse, double dt, IRenderer &renderer) -> void
-{
-}
-
-inline auto Abyss::Widget::keyEvent(const AMouse &mouse, KEY key, ACTION action, MODS mods) -> void
-{
-}
-
-inline auto Abyss::Widget::characterEvent(const AMouse &mouse, wchar_t codepoint) -> void
-{
-}
-
-inline auto Abyss::Widget::mouseButtonEvent(const AMouse &mouse, MOUSE button, ACTION action, MODS mods) -> void
-{
-}
-
-inline auto Abyss::Widget::scrollEvent(const AMouse &mouse, const Vector3<double> &offset) -> void
-{
-}
-
-inline auto Abyss::Widget::thinkDispatch(const AMouse &mouse, double dt) -> void
-{
-    if (m_active)
-        think(mouse, dt);
-}
-
-inline auto Abyss::Widget::paintDispatch(const AMouse &mouse, double dt, IRenderer &renderer) -> void
-{
-    if (m_visible)
-        paint(mouse, dt, renderer);
-}
-
-inline auto Abyss::Widget::keyEventDispatch(const AMouse &mouse, KEY key, ACTION action, MODS mods) -> void
-{
-    if (m_active)
-        keyEvent(mouse, key, action, mods);
-}
-
-inline auto Abyss::Widget::characterEventDispatch(const AMouse &mouse, wchar_t codepoint) -> void
-{
-    if (m_active)
-        characterEvent(mouse, codepoint);
-}
-
-inline auto Abyss::Widget::mouseButtonEventDispatch(const AMouse &mouse, MOUSE button, ACTION action, MODS mods) -> void
-{
-    if (m_active)
-        mouseButtonEvent(mouse, button, action, mods);
-}
-
-inline auto Abyss::Widget::scrollEventDispatch(const AMouse &mouse, const Vector3<double> &offset) -> void
-{
-    if (m_active)
-        scrollEvent(mouse, offset);
+    scrollEvent(device, offset);
 }

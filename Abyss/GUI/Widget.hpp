@@ -46,20 +46,40 @@ public:
     [[nodiscard]] virtual auto isActive() const -> decltype(m_active);
     virtual auto               setActive(decltype(m_active) active) -> void;
     [[nodiscard]] virtual auto getPosition(bool relative = true) const -> decltype(m_position);
-    virtual auto               setPosition(decltype(m_position) position) -> void;
+    virtual auto               setPosition(const decltype(m_position) &position) -> void;
     [[nodiscard]] virtual auto getSize() const -> decltype(m_size);
-    virtual auto               setSize(decltype(m_size) size) -> void;
+    virtual auto               setSize(const decltype(m_size) &size) -> void;
     [[nodiscard]] virtual auto getRotation(bool relative = true) const -> decltype(m_rotation);
-    virtual auto               setRotation(decltype(m_rotation) rotation) -> void;
+    virtual auto               setRotation(const decltype(m_rotation) &rotation) -> void;
     [[nodiscard]] virtual auto getScale(bool relative = true) const -> decltype(m_scale);
-    virtual auto               setScale(decltype(m_scale) scale) -> void;
+    virtual auto               setScale(const decltype(m_scale) &scale) -> void;
     virtual auto               thinkDispatch(const InputDevice &device, double dt) -> void;
     virtual auto               paintDispatch(const InputDevice &device, double dt, Renderer &renderer) -> void;
     virtual auto               keyEventDispatch(const InputDevice &device, InputDefinitions::KEY key, InputDefinitions::ACTION action) -> void;
     virtual auto               characterEventDispatch(const InputDevice &device, wchar_t codepoint) -> void;
     virtual auto               mouseButtonEventDispatch(const InputDevice &device, InputDefinitions::MOUSE_BUTTON button, InputDefinitions::ACTION action) -> void;
     virtual auto               scrollEventDispatch(const InputDevice &device, const Vector3<double> &offset) -> void;
+    virtual auto               registerOnInputDevice(InputDevice &device) -> void;
 };
+
+inline auto Abyss::GUI::Widget::registerOnInputDevice(InputDevice &device) -> void
+{
+    device.m_keyEvent = [this](const InputDevice &device, InputDefinitions::KEY key, InputDefinitions::ACTION action) {
+        keyEventDispatch(device, key, action);
+    };
+
+    device.m_characterEvent = [this](const InputDevice &device, wchar_t codepoint) {
+        characterEventDispatch(device, codepoint);
+    };
+
+    device.m_mouseButtonEvent = [this](const InputDevice &device, InputDefinitions::MOUSE_BUTTON button, InputDefinitions::ACTION action) {
+        mouseButtonEventDispatch(device, button, action);
+    };
+
+    device.m_scrollEvent = [this](const InputDevice &device, const Vector3<double> &offset) {
+        scrollEventDispatch(device, offset);
+    };
+}
 
 inline auto Abyss::GUI::Widget::think(const InputDevice &device, double dt) -> void
 {
@@ -166,7 +186,7 @@ inline auto Abyss::GUI::Widget::getPosition(bool relative) const -> decltype(m_p
     return m_position;
 }
 
-inline auto Abyss::GUI::Widget::setPosition(decltype(m_position) position) -> void
+inline auto Abyss::GUI::Widget::setPosition(const decltype(m_position) &position) -> void
 {
     m_position = position;
 }
@@ -176,7 +196,7 @@ inline auto Abyss::GUI::Widget::getSize() const -> decltype(m_size)
     return m_size;
 }
 
-inline auto Abyss::GUI::Widget::setSize(decltype(m_size) size) -> void
+inline auto Abyss::GUI::Widget::setSize(const decltype(m_size) &size) -> void
 {
     m_size = size;
 }
@@ -189,7 +209,7 @@ inline auto Abyss::GUI::Widget::getRotation(bool relative) const -> decltype(m_r
     return m_rotation;
 }
 
-inline auto Abyss::GUI::Widget::setRotation(decltype(m_rotation) rotation) -> void
+inline auto Abyss::GUI::Widget::setRotation(const decltype(m_rotation) &rotation) -> void
 {
     m_rotation = rotation;
 }
@@ -202,7 +222,7 @@ inline auto Abyss::GUI::Widget::getScale(bool relative) const -> decltype(m_scal
     return m_scale;
 }
 
-inline auto Abyss::GUI::Widget::setScale(decltype(m_scale) scale) -> void
+inline auto Abyss::GUI::Widget::setScale(const decltype(m_scale) &scale) -> void
 {
     m_scale = scale;
 }

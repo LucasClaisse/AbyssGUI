@@ -25,7 +25,7 @@ public:
 
 inline auto Abyss::GUI::Layout::addChild(ChildType &&widget) -> Child &
 {
-    Widget::addChild(std::move(widget));
+    return Widget::addChild(std::move(widget));
 }
 
 inline auto Abyss::GUI::Layout::deleteChild(const Child &child) -> void

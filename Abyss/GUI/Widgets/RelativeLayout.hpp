@@ -3,17 +3,18 @@
 #include "Abyss/GUI/Layout.hpp"
 
 namespace Abyss {
-	namespace Widgets {
-		class RelativeLayout;
-	}
+    namespace GUI {
+        namespace Widgets {
+            class RelativeLayout;
+        }
+    }
 }
 
-class Abyss::Widgets::RelativeLayout : public Layout {
+class Abyss::GUI::Widgets::RelativeLayout : public Layout {
 public:
-	auto childrenUpdate() -> void override;
+    auto onChildChange(const Child &child) -> void override;
 };
 
-auto Abyss::Widgets::RelativeLayout::childrenUpdate() -> void
+inline auto Abyss::GUI::Widgets::RelativeLayout::onChildChange(const Child &child) -> void
 {
-
 }

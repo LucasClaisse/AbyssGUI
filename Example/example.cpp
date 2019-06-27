@@ -8,7 +8,9 @@
 
 #pragma clang diagnostic pop
 
+#include "Abyss/GUI/Interfaces/InputDevice.hpp"
 #include "Abyss/GUI/Interfaces/Renderer.hpp"
+#include "Abyss/GUI/Widgets/Window.hpp"
 
 #include <GL/glu.h>
 #include <cstdint>
@@ -16,16 +18,40 @@
 #include <sstream>
 #include <stdexcept>
 
+class SDL2InputDevice final : public Abyss::GUI::InputDevice {
+public:
+    auto processEvent(SDL_Event &event) noexcept -> void;
+};
+
+inline auto SDL2InputDevice::processEvent(SDL_Event &event) noexcept -> void
+{
+    switch (event.type) {
+    case SDL_MOUSEMOTION: {
+        m_mousePosition = {static_cast<double>(event.motion.x), static_cast<double>(event.motion.y)};
+        break;
+    }
+    case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEBUTTONUP: {
+        // m_mouseButtonsState[]
+        if (m_mouseButtonEvent)
+            m_mouseButtonEvent(*this, Abyss::GUI::InputDefinitions::MOUSE_BUTTON::MOUSE_BUTTON_LEFT, (event.type == SDL_MOUSEBUTTONDOWN) ? Abyss::GUI::InputDefinitions::ACTION::ACTION_PRESS : Abyss::GUI::InputDefinitions::ACTION::ACTION_RELEASE);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
 class OpenGL21Renderer final : public Abyss::GUI::Renderer {
 public:
     auto drawVertices(const Vertices &vertices, const Color &col) -> void final;
     auto drawColoredVertices(const ColoredVertices &vertices) -> void final;
 };
 
-auto OpenGL21Renderer::drawVertices(const Vertices &vertices, const Color &col) -> void
+inline auto OpenGL21Renderer::drawVertices(const Vertices &vertices, const Color &col) -> void
 {
     glBegin(GL_QUADS);
-    glColor4d(col.r / 255, col.g / 255, col.b / 255, col.a / 255);
+    glColor4d(static_cast<double>(col.r) / 255, static_cast<double>(col.g) / 255, static_cast<double>(col.b) / 255, static_cast<double>(col.a) / 255);
     for (auto vertex : vertices) {
         vertex /= {1600, 900, 0};
         vertex *= 2;
@@ -36,7 +62,7 @@ auto OpenGL21Renderer::drawVertices(const Vertices &vertices, const Color &col) 
     glEnd();
 }
 
-auto OpenGL21Renderer::drawColoredVertices(const ColoredVertices &vertices) -> void
+inline auto OpenGL21Renderer::drawColoredVertices(const ColoredVertices &vertices) -> void
 {
     glBegin(GL_QUADS);
     for (auto [vertex, color] : vertices) {
@@ -74,7 +100,13 @@ static auto start() -> void
 
     glClearColor(0.f, 0.f, 0.f, 1.f);
 
-    OpenGL21Renderer renderer{};
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    OpenGL21Renderer            renderer{};
+    SDL2InputDevice             device{};
+    Abyss::GUI::Widgets::Window win{};
+    win.registerOnInputDevice(device);
 
     bool      run{true};
     SDL_Event event{};
@@ -82,6 +114,7 @@ static auto start() -> void
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT)
                 run = false;
+            device.processEvent(event);
         }
 
         if (!run)
@@ -98,6 +131,10 @@ static auto start() -> void
         {{150, 150}, {0, 0, 255}},
         {{150, 50}, {255, 255, 0}},
         });
+
+        double dt{0};
+        win.thinkDispatch(device, dt);
+        win.paintDispatch(device, dt, renderer);
 
         SDL_GL_SwapWindow(window);
     }

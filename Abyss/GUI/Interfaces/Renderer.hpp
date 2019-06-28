@@ -5,6 +5,7 @@
 
 #include <utility>
 #include <vector>
+#include <optional>
 
 namespace Abyss {
     namespace GUI {
@@ -16,7 +17,7 @@ class Abyss::GUI::Renderer {
 protected:
     using Vertex          = Vector3<double>;
     using Vertices        = std::vector<Vertex>;
-    using ColoredVertex   = std::pair<Vertex, Color>;
+    using ColoredVertex   = std::pair<Vertex, std::optional<Color>>;
     using ColoredVertices = std::vector<ColoredVertex>;
 
     Color m_currentImmediateColor{255, 255, 255, 255};

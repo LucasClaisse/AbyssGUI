@@ -173,10 +173,9 @@ inline auto SDL2InputDevice::processEvent(SDL_Event &event) noexcept -> void
     case SDL_KEYDOWN:
     case SDL_KEYUP: {
         auto match{m_keyMatches.find(event.key.keysym.sym)};
-		// std::cout << "Key is " << Abyss::GUI::InputDefinitions::keyToString[(*match).second] << " " << event.key.keysym.scancode << '\n';
+		// std::cout << "Key is '" << Abyss::GUI::InputDefinitions::keyToString[(*match).second] << "' " << event.key.keysym.scancode << '\n';
         if (match != m_keyMatches.cend() && m_keyEvent)
             m_keyEvent(*this, (*match).second, (event.type == SDL_KEYDOWN) ? Abyss::GUI::InputDefinitions::ACTION::ACTION_PRESS : Abyss::GUI::InputDefinitions::ACTION::ACTION_RELEASE);
-        // m_characterEvent(*this, event.key.keysym.scancode);
 		break;
     }
 	case SDL_TEXTINPUT: {

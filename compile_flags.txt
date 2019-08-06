@@ -2,8 +2,7 @@
 include
 -iquote
 .
--IExample/lib/SDL2-2.0.9/include
--IExample/lib/SDL2_ttf-2.0.15/include
+-IExample/lib/SFML-2.5.1/include
 -std=c++2a
 -W
 -Wall

@@ -30,7 +30,7 @@ public:
 
 inline Abyss::GUI::Widgets::WindowTitlebar::WindowTitlebar()
 {
-    setSize({0, 20});
+    setSize({0, 30});
 }
 
 inline auto Abyss::GUI::Widgets::WindowTitlebar::mouseButtonEvent(const InputDevice &device, InputDefinitions::MOUSE_BUTTON button, InputDefinitions::ACTION action) -> void
@@ -39,7 +39,6 @@ inline auto Abyss::GUI::Widgets::WindowTitlebar::mouseButtonEvent(const InputDev
     auto size{getSize()};
     auto hovered{device.isHovering(pos, size)};
 
-        std::cout << "wow" << std::endl;
     if (button == InputDefinitions::MOUSE_BUTTON::MOUSE_BUTTON_LEFT && action == InputDefinitions::ACTION::ACTION_PRESS && !m_held) {
         m_held = hovered;
         if (m_held)
@@ -68,9 +67,8 @@ inline auto Abyss::GUI::Widgets::WindowBody::paint(const InputDevice &device, do
     auto pos{getPosition()};
     auto size{getSize()};
 
-    renderer.setColor({255, 255, 255});
+    renderer.setColor({235, 235, 235});
     renderer.drawRectangle(pos, size);
-
 }
 
 class Abyss::GUI::Widgets::Window final : public RelativeLayout {
@@ -117,13 +115,13 @@ inline auto Abyss::GUI::Widgets::Window::think(const InputDevice &device, double
 
 inline auto Abyss::GUI::Widgets::Window::paint(const InputDevice &device, double dt, Renderer &renderer) -> void
 {
+	auto height{m_titlebar->getSize().y};
     auto pos{getPosition()};
     auto size{getSize()};
 
-    renderer.setColor({0, 255, 255, 75});
+    renderer.setColor({0, 188, 212, 255});
     renderer.drawRectangle(pos, size);
-
-    // m_body->paintDispatch(device, dt, renderer);
+	renderer.drawText(L"Window Title", pos + Vector3<double>{10, 3}, "OpenSans-Regular.ttf", height - 3 * 3, {255, 255, 255});
 }
 
 inline auto Abyss::GUI::Widgets::Window::getBody() const noexcept -> WindowBody &

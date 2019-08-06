@@ -12,7 +12,13 @@ namespace Abyss {
 }
 
 class Abyss::GUI::Layout : public Widget {
+protected:
+	double m_spacing{};
+
 public:
+	[[nodiscard]] virtual auto getSpacing() const -> decltype(m_spacing);
+    virtual auto               setSpacing(const decltype(m_spacing) &spacing) -> void;
+
     auto addChild(ChildType &&widget) -> Child & override;
     auto deleteChild(const Child &child) -> void override;
 

@@ -30,5 +30,5 @@ inline auto Abyss::GUI::Widgets::Textbox::characterEvent(const InputDevice &devi
 
 inline auto Abyss::GUI::Widgets::Textbox::paint(const InputDevice &device, double dt, Renderer &renderer) -> void
 {
-	// std::wcout << m_wstr << '\n';
+	std::wcout << m_wstr << '\n';
 }

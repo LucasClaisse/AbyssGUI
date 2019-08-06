@@ -12,7 +12,23 @@ namespace Abyss {
     }
 }
 
+/*
+	To implement:
+	- Rotation
+	- Scale
+	- Padding
+	- Margin
+	- Spacing (Layout only?)
+*/
+
 class Abyss::GUI::Widget {
+public:
+    enum class Type : uint8_t {
+        Relative,
+        Absolute,
+        Percentage
+    };
+
 protected:
     using Child     = Widget;
     using ChildType = std::unique_ptr<Child>;
@@ -22,8 +38,11 @@ protected:
     bool                   m_active{true};
     Vector3<double>        m_position{};
     Vector3<double>        m_size{};
+    Vector3<double>        m_baseSize{100, 100};
     Vector3<double>        m_rotation{};
     Vector3<double>        m_scale{1, 1, 1};
+    Vector3<double>        m_padding{};
+    Vector3<double>        m_margin{};
     std::vector<ChildType> m_children{};
 
     virtual auto think(const InputDevice &device, double dt) -> void;
@@ -39,6 +58,8 @@ protected:
     virtual auto onChildChange(const Child &child) -> void;
 
 public:
+    virtual ~Widget() = default;
+
     [[nodiscard]] virtual auto getParent() const -> decltype(m_parent);
     virtual auto               setParent(decltype(m_parent) parent) -> void;
     [[nodiscard]] virtual auto isVisible() const -> decltype(m_visible);
@@ -49,10 +70,16 @@ public:
     virtual auto               setPosition(const decltype(m_position) &position) -> void;
     [[nodiscard]] virtual auto getSize() const -> decltype(m_size);
     virtual auto               setSize(const decltype(m_size) &size) -> void;
+    [[nodiscard]] virtual auto getBaseSize() const -> decltype(m_baseSize);
+    virtual auto               setBaseSize(const decltype(m_baseSize) &baseSize) -> void;
     [[nodiscard]] virtual auto getRotation(bool relative = true) const -> decltype(m_rotation);
     virtual auto               setRotation(const decltype(m_rotation) &rotation) -> void;
     [[nodiscard]] virtual auto getScale(bool relative = true) const -> decltype(m_scale);
     virtual auto               setScale(const decltype(m_scale) &scale) -> void;
+    [[nodiscard]] virtual auto getPadding() const -> decltype(m_padding);
+    virtual auto               setPadding(const decltype(m_padding) &padding) -> void;
+    [[nodiscard]] virtual auto getMargin() const -> decltype(m_margin);
+    virtual auto               setMargin(const decltype(m_margin) &margin) -> void;
     virtual auto               thinkDispatch(const InputDevice &device, double dt) -> void;
     virtual auto               paintDispatch(const InputDevice &device, double dt, Renderer &renderer) -> void;
     virtual auto               keyEventDispatch(const InputDevice &device, InputDefinitions::KEY key, InputDefinitions::ACTION action) -> void;
@@ -62,21 +89,21 @@ public:
     virtual auto               registerOnInputDevice(InputDevice &device) -> void;
 };
 
-inline auto Abyss::GUI::Widget::registerOnInputDevice(InputDevice &device) -> void
+inline auto Abyss::GUI::Widget::registerOnInputDevice(InputDevice &deviceToRegister) -> void
 {
-    device.m_keyEvent = [this](const InputDevice &device, InputDefinitions::KEY key, InputDefinitions::ACTION action) {
+    deviceToRegister.m_keyEvent = [this](const InputDevice &device, InputDefinitions::KEY key, InputDefinitions::ACTION action) {
         keyEventDispatch(device, key, action);
     };
 
-    device.m_characterEvent = [this](const InputDevice &device, wchar_t codepoint) {
+    deviceToRegister.m_characterEvent = [this](const InputDevice &device, wchar_t codepoint) {
         characterEventDispatch(device, codepoint);
     };
 
-    device.m_mouseButtonEvent = [this](const InputDevice &device, InputDefinitions::MOUSE_BUTTON button, InputDefinitions::ACTION action) {
+    deviceToRegister.m_mouseButtonEvent = [this](const InputDevice &device, InputDefinitions::MOUSE_BUTTON button, InputDefinitions::ACTION action) {
         mouseButtonEventDispatch(device, button, action);
     };
 
-    device.m_scrollEvent = [this](const InputDevice &device, const Vector3<double> &offset) {
+    deviceToRegister.m_scrollEvent = [this](const InputDevice &device, const Vector3<double> &offset) {
         scrollEventDispatch(device, offset);
     };
 }
@@ -225,6 +252,26 @@ inline auto Abyss::GUI::Widget::getScale(bool relative) const -> decltype(m_scal
 inline auto Abyss::GUI::Widget::setScale(const decltype(m_scale) &scale) -> void
 {
     m_scale = scale;
+}
+
+inline auto Abyss::GUI::Widget::getPadding() const -> decltype(m_padding)
+{
+    return m_padding;
+}
+
+inline auto Abyss::GUI::Widget::setPadding(const decltype(m_padding) &padding) -> void
+{
+    m_padding = padding;
+}
+
+inline auto Abyss::GUI::Widget::getMargin() const -> decltype(m_margin)
+{
+    return m_margin;
+}
+
+inline auto Abyss::GUI::Widget::setMargin(const decltype(m_margin) &margin) -> void
+{
+    m_margin = margin;
 }
 
 inline auto Abyss::GUI::Widget::thinkDispatch(const InputDevice &device, double dt) -> void

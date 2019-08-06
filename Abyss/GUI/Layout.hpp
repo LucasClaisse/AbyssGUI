@@ -29,6 +29,17 @@ public:
     auto addChild(ChildType child) -> T &;
 };
 
+
+inline auto Abyss::GUI::Layout::getSpacing() const -> decltype(m_spacing)
+{
+    return m_spacing;
+}
+
+inline auto Abyss::GUI::Layout ::setSpacing(const decltype(m_spacing) &spacing) -> void
+{
+    m_spacing = spacing;
+}
+
 inline auto Abyss::GUI::Layout::addChild(ChildType &&widget) -> Child &
 {
     return Widget::addChild(std::move(widget));

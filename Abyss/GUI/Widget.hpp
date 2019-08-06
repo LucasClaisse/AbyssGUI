@@ -228,6 +228,16 @@ inline auto Abyss::GUI::Widget::setSize(const decltype(m_size) &size) -> void
     m_size = size;
 }
 
+inline auto Abyss::GUI::Widget::getBaseSize() const -> decltype(m_baseSize)
+{
+    return m_baseSize;
+}
+
+inline auto Abyss::GUI::Widget::setBaseSize(const decltype(m_baseSize) &baseSize) -> void
+{
+    m_baseSize = baseSize;
+}
+
 inline auto Abyss::GUI::Widget::getRotation(bool relative) const -> decltype(m_rotation)
 {
     if (m_parent != nullptr && relative)
